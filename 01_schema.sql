@@ -1,6 +1,6 @@
 -- =====================================================================
 --  TransConnect - Schéma PostgreSQL (MLD issu du MCD)
---  Cible : PostgreSQL 14+   |   Monnaie : XOF (FCFA, montants entiers)
+--  Cible : PostgreSQL 9.6+ (testé en 9.6 et 16)   |   Monnaie : XOF (FCFA, montants entiers)
 --  Exécution : psql -d transconnect -f 01_schema.sql
 -- =====================================================================
 
@@ -10,6 +10,22 @@ BEGIN;
 DROP SCHEMA IF EXISTS transconnect CASCADE;
 CREATE SCHEMA transconnect;
 SET search_path TO transconnect, public;
+
+-- gen_random_uuid() est intégré à PostgreSQL 13+ ; avant (ex. 9.6 chez certains hébergeurs, sans pgcrypto),
+-- on en définit un équivalent (UUID version 4) dans le schéma.
+DO $$
+BEGIN
+    IF to_regproc('pg_catalog.gen_random_uuid') IS NULL AND to_regproc('public.gen_random_uuid') IS NULL THEN
+        EXECUTE $f$
+            CREATE FUNCTION transconnect.gen_random_uuid() RETURNS uuid LANGUAGE sql VOLATILE AS $b$
+                SELECT (substr(h, 1, 8) || '-' || substr(h, 9, 4) || '-4' || substr(h, 14, 3) || '-'
+                        || substr('89ab', 1 + (('x' || substr(h, 17, 1))::bit(4)::int % 4), 1) || substr(h, 18, 3)
+                        || '-' || substr(h, 21, 12))::uuid
+                  FROM (SELECT md5(random()::text || clock_timestamp()::text) AS h) s
+            $b$
+        $f$;
+    END IF;
+END $$;
 
 -- ---------------------------------------------------------------------
 -- 1. Types énumérés
@@ -43,7 +59,7 @@ CREATE TYPE type_auteur_avis    AS ENUM ('marchand', 'transporteur');
 -- 2. Référentiel et acteurs
 -- ---------------------------------------------------------------------
 CREATE TABLE ville (
-    id_ville      SMALLINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_ville      SMALLSERIAL PRIMARY KEY,
     nom_ville     VARCHAR(80)  NOT NULL,
     pays          CHAR(2)      NOT NULL DEFAULT 'BJ',          -- ISO 3166-1
     est_couverte  BOOLEAN      NOT NULL DEFAULT TRUE,
@@ -192,7 +208,7 @@ CREATE TABLE demande (
 );
 
 CREATE TABLE historique_statut (                                               -- Historiser
-    id_historique   BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_historique   BIGSERIAL PRIMARY KEY,
     id_demande      UUID NOT NULL REFERENCES demande(id_demande) ON DELETE CASCADE,
     ancien_statut   statut_demande,
     nouveau_statut  statut_demande NOT NULL,
@@ -263,7 +279,7 @@ CREATE TABLE paiement (                                                        -
     statut             statut_paiement NOT NULL DEFAULT 'initie',
     statut_sequestre   statut_sequestre,
     taux_commission    NUMERIC(4,2) NOT NULL DEFAULT 7.00 CHECK (taux_commission BETWEEN 0 AND 30),
-    montant_commission INTEGER GENERATED ALWAYS AS (ROUND(montant * taux_commission / 100)::INTEGER) STORED,
+    montant_commission INTEGER NOT NULL DEFAULT 0,                             -- calculée par tg_paiement_reussi
     url_recu           TEXT,
     motif_echec        TEXT,
     date_paiement      TIMESTAMPTZ,
@@ -295,7 +311,7 @@ CREATE TABLE livraison (                                                       -
 );
 
 CREATE TABLE position_gps (                                                    -- Tracer
-    id_position  BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_position  BIGSERIAL PRIMARY KEY,
     id_livraison UUID NOT NULL REFERENCES livraison(id_livraison) ON DELETE CASCADE,
     latitude     NUMERIC(9,6) NOT NULL CHECK (latitude BETWEEN -90 AND 90),
     longitude    NUMERIC(9,6) NOT NULL CHECK (longitude BETWEEN -180 AND 180),
@@ -361,7 +377,7 @@ CREATE TABLE avis (                                                            -
 
 -- Journal d'audit des actions sensibles (exigence sécurité §5.2)
 CREATE TABLE audit_log (
-    id_audit       BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_audit       BIGSERIAL PRIMARY KEY,
     id_utilisateur UUID REFERENCES utilisateur(id_utilisateur),
     action         VARCHAR(60) NOT NULL,
     table_cible    VARCHAR(60),
@@ -408,10 +424,10 @@ BEGIN
     RETURN NEW;
 END $$;
 
-CREATE TRIGGER tg_transporteur_updated BEFORE UPDATE ON transporteur FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
-CREATE TRIGGER tg_utilisateur_updated  BEFORE UPDATE ON utilisateur  FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
-CREATE TRIGGER tg_demande_updated      BEFORE UPDATE ON demande      FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
-CREATE TRIGGER tg_livraison_updated    BEFORE UPDATE ON livraison    FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
+CREATE TRIGGER tg_transporteur_updated BEFORE UPDATE ON transporteur FOR EACH ROW EXECUTE PROCEDURE trg_set_updated_at();
+CREATE TRIGGER tg_utilisateur_updated  BEFORE UPDATE ON utilisateur  FOR EACH ROW EXECUTE PROCEDURE trg_set_updated_at();
+CREATE TRIGGER tg_demande_updated      BEFORE UPDATE ON demande      FOR EACH ROW EXECUTE PROCEDURE trg_set_updated_at();
+CREATE TRIGGER tg_livraison_updated    BEFORE UPDATE ON livraison    FOR EACH ROW EXECUTE PROCEDURE trg_set_updated_at();
 
 -- Vérification du rôle d'un utilisateur référencé
 CREATE FUNCTION assert_role(p_user UUID, p_roles role_utilisateur[], p_contexte TEXT)
@@ -439,11 +455,11 @@ BEGIN
     RETURN NEW;
 END $$;
 
-CREATE TRIGGER tg_demande_role    BEFORE INSERT OR UPDATE OF id_marchand     ON demande           FOR EACH ROW EXECUTE FUNCTION trg_check_roles();
-CREATE TRIGGER tg_evaluation_role BEFORE INSERT OR UPDATE OF id_representant ON evaluation        FOR EACH ROW EXECUTE FUNCTION trg_check_roles();
-CREATE TRIGGER tg_zone_role       BEFORE INSERT OR UPDATE                    ON zone_intervention FOR EACH ROW EXECUTE FUNCTION trg_check_roles();
-CREATE TRIGGER tg_livraison_role  BEFORE INSERT OR UPDATE OF id_chauffeur    ON livraison         FOR EACH ROW EXECUTE FUNCTION trg_check_roles();
-CREATE TRIGGER tg_litige_role     BEFORE INSERT OR UPDATE OF id_admin        ON litige            FOR EACH ROW EXECUTE FUNCTION trg_check_roles();
+CREATE TRIGGER tg_demande_role    BEFORE INSERT OR UPDATE OF id_marchand     ON demande           FOR EACH ROW EXECUTE PROCEDURE trg_check_roles();
+CREATE TRIGGER tg_evaluation_role BEFORE INSERT OR UPDATE OF id_representant ON evaluation        FOR EACH ROW EXECUTE PROCEDURE trg_check_roles();
+CREATE TRIGGER tg_zone_role       BEFORE INSERT OR UPDATE                    ON zone_intervention FOR EACH ROW EXECUTE PROCEDURE trg_check_roles();
+CREATE TRIGGER tg_livraison_role  BEFORE INSERT OR UPDATE OF id_chauffeur    ON livraison         FOR EACH ROW EXECUTE PROCEDURE trg_check_roles();
+CREATE TRIGGER tg_litige_role     BEFORE INSERT OR UPDATE OF id_admin        ON litige            FOR EACH ROW EXECUTE PROCEDURE trg_check_roles();
 
 -- Numéro de demande TC-AAAA-NNNNN
 CREATE FUNCTION trg_demande_numero() RETURNS trigger LANGUAGE plpgsql AS $$
@@ -453,7 +469,7 @@ BEGIN
     END IF;
     RETURN NEW;
 END $$;
-CREATE TRIGGER tg_demande_numero BEFORE INSERT ON demande FOR EACH ROW EXECUTE FUNCTION trg_demande_numero();
+CREATE TRIGGER tg_demande_numero BEFORE INSERT ON demande FOR EACH ROW EXECUTE PROCEDURE trg_demande_numero();
 
 -- Historisation des statuts (timeline de suivi)
 CREATE FUNCTION trg_historiser_statut() RETURNS trigger LANGUAGE plpgsql AS $$
@@ -466,7 +482,7 @@ BEGIN
     RETURN NEW;
 END $$;
 CREATE TRIGGER tg_demande_historique AFTER INSERT OR UPDATE OF statut ON demande
-    FOR EACH ROW EXECUTE FUNCTION trg_historiser_statut();
+    FOR EACH ROW EXECUTE PROCEDURE trg_historiser_statut();
 
 -- Négociation : 3 allers-retours maximum (3 messages par émetteur)
 CREATE FUNCTION trg_limite_negociation() RETURNS trigger LANGUAGE plpgsql AS $$
@@ -483,7 +499,7 @@ BEGIN
     RETURN NEW;
 END $$;
 CREATE TRIGGER tg_message_limite BEFORE INSERT ON message_negociation
-    FOR EACH ROW EXECUTE FUNCTION trg_limite_negociation();
+    FOR EACH ROW EXECUTE PROCEDURE trg_limite_negociation();
 
 -- Évaluation : au moins 2 photos avant soumission
 CREATE FUNCTION trg_evaluation_photos() RETURNS trigger LANGUAGE plpgsql AS $$
@@ -496,12 +512,13 @@ BEGIN
     RETURN NEW;
 END $$;
 CREATE TRIGGER tg_evaluation_photos BEFORE UPDATE OF date_soumission ON evaluation
-    FOR EACH ROW EXECUTE FUNCTION trg_evaluation_photos();
+    FOR EACH ROW EXECUTE PROCEDURE trg_evaluation_photos();
 
 -- Paiement réussi : séquestre bloqué, devis accepté, demande PAYE
 CREATE FUNCTION trg_paiement_reussi() RETURNS trigger LANGUAGE plpgsql AS $$
 DECLARE v_demande UUID;
 BEGIN
+    NEW.montant_commission := round(NEW.montant * NEW.taux_commission / 100)::integer;
     IF NEW.statut = 'reussi' AND (TG_OP = 'INSERT' OR OLD.statut IS DISTINCT FROM 'reussi') THEN
         NEW.statut_sequestre := coalesce(NEW.statut_sequestre, 'bloque');
         NEW.date_paiement    := coalesce(NEW.date_paiement, now());
@@ -516,8 +533,8 @@ BEGIN
     END IF;
     RETURN NEW;
 END $$;
-CREATE TRIGGER tg_paiement_reussi BEFORE INSERT OR UPDATE OF statut, statut_sequestre ON paiement
-    FOR EACH ROW EXECUTE FUNCTION trg_paiement_reussi();
+CREATE TRIGGER tg_paiement_reussi BEFORE INSERT OR UPDATE ON paiement
+    FOR EACH ROW EXECUTE PROCEDURE trg_paiement_reussi();
 
 -- Livraison : synchronise le statut de la demande
 CREATE FUNCTION trg_livraison_statut() RETURNS trigger LANGUAGE plpgsql AS $$
@@ -530,7 +547,7 @@ BEGIN
     RETURN NEW;
 END $$;
 CREATE TRIGGER tg_livraison_statut AFTER UPDATE OF statut ON livraison
-    FOR EACH ROW WHEN (NEW.statut IS DISTINCT FROM OLD.statut) EXECUTE FUNCTION trg_livraison_statut();
+    FOR EACH ROW WHEN (NEW.statut IS DISTINCT FROM OLD.statut) EXECUTE PROCEDURE trg_livraison_statut();
 
 -- Litige ouvert : demande passe en LITIGE
 CREATE FUNCTION trg_litige_ouvert() RETURNS trigger LANGUAGE plpgsql AS $$
@@ -538,7 +555,7 @@ BEGIN
     UPDATE demande SET statut = 'LITIGE' WHERE id_demande = NEW.id_demande;
     RETURN NEW;
 END $$;
-CREATE TRIGGER tg_litige_ouvert AFTER INSERT ON litige FOR EACH ROW EXECUTE FUNCTION trg_litige_ouvert();
+CREATE TRIGGER tg_litige_ouvert AFTER INSERT ON litige FOR EACH ROW EXECUTE PROCEDURE trg_litige_ouvert();
 
 -- Avis : recalcul des notes moyennes (marchand noté par le transporteur, et inversement)
 CREATE FUNCTION trg_avis_note() RETURNS trigger LANGUAGE plpgsql AS $$
@@ -571,7 +588,7 @@ BEGIN
     END IF;
     RETURN NEW;
 END $$;
-CREATE TRIGGER tg_avis_note AFTER INSERT ON avis FOR EACH ROW EXECUTE FUNCTION trg_avis_note();
+CREATE TRIGGER tg_avis_note AFTER INSERT ON avis FOR EACH ROW EXECUTE PROCEDURE trg_avis_note();
 
 -- Calcul du prix suggéré : base + distance × tarif_km + poids × tarif_kg, × coef type, + express
 CREATE FUNCTION calculer_prix_suggere(p_grille UUID, p_distance_km NUMERIC, p_poids_kg NUMERIC,

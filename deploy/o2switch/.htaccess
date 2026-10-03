@@ -1,0 +1,28 @@
+# TransConnect sur o2switch : back-office Flutter à la racine, API Symfony sous /api
+DirectoryIndex index.html
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # HTTPS obligatoire
+    RewriteCond %{HTTPS} !=on
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+    # Transmet l'en-tête Authorization (JWT) à PHP
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # /api et /api/... -> Symfony
+    RewriteRule ^api(/.*)?$ index.php [QSA,L]
+</IfModule>
+
+# Fichiers sensibles jamais servis
+<FilesMatch "^\.(env|git)">
+    Require all denied
+</FilesMatch>
+
+# Cache : fichiers versionnés de Flutter longtemps, index.html jamais
+<IfModule mod_headers.c>
+    <FilesMatch "^(index\.html|flutter_service_worker\.js|flutter_bootstrap\.js|version\.json)$">
+        Header set Cache-Control "no-cache"
+    </FilesMatch>
+</IfModule>
