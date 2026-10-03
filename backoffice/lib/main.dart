@@ -76,7 +76,7 @@ class _BackOfficeAppState extends State<BackOfficeApp> {
   Widget build(BuildContext context) => AuthScope(
         controller: widget.auth,
         child: MaterialApp.router(
-          title: 'TransConnect Admin',
+          title: 'TransportConnect Admin',
           debugShowCheckedModeBanner: false,
           theme: TC.theme(),
           routerConfig: _router,

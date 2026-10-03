@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../theme.dart';
 import 'common.dart';
+import 'logo.dart';
 
 class NavItem {
   const NavItem(this.path, this.label, this.icon, {this.badge});
@@ -102,18 +103,10 @@ class _Sidebar extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(8, 0, 8, 24),
-            child: Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(color: TC.secondary, borderRadius: BorderRadius.circular(10)),
-                  child: const Icon(Icons.local_shipping_outlined, color: TC.gray900, size: 20),
-                ),
-                const SizedBox(width: 10),
-                Text('TransConnect', style: GoogleFonts.poppins(color: TC.white, fontSize: 18, fontWeight: FontWeight.w700)),
-              ],
+            padding: const EdgeInsets.fromLTRB(4, 0, 4, 24),
+            child: const Align(
+              alignment: Alignment.centerLeft,
+              child: TcLogo(dark: true, markSize: 18, fontSize: 17),
             ),
           ),
           for (final item in navItems)

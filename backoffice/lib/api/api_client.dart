@@ -23,7 +23,7 @@ class ApiPage {
   final int total;
 }
 
-/// Client HTTP de l'API TransConnect : JWT en en-tête, renouvellement automatique sur 401.
+/// Client HTTP de l'API TransportConnect : JWT en en-tête, renouvellement automatique sur 401.
 class ApiClient {
   ApiClient({required this.onTokensRefreshed, required this.onSessionExpired});
 

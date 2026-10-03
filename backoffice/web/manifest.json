@@ -1,12 +1,12 @@
 {
-    "name": "transconnect_backoffice",
-    "short_name": "transconnect_backoffice",
+    "name": "TransportConnect Admin",
+    "short_name": "TransportConnect",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "Back-office TransConnect",
-    "orientation": "portrait-primary",
+    "background_color": "#163A6B",
+    "theme_color": "#163A6B",
+    "description": "Back-office TransportConnect",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {

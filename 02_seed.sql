@@ -27,7 +27,7 @@ INSERT INTO grille_tarifaire (id_grille, id_transporteur, prix_base, tarif_km, t
 
 -- Utilisateurs
 INSERT INTO utilisateur (id_utilisateur, telephone, nom_complet, role, id_ville_residence, id_transporteur, type_activite, disponibilite, statut_compte) VALUES
- ('40000000-0000-0000-0000-000000000001', '+22990000001', 'Admin TransConnect', 'admin',        1, NULL, NULL, NULL, 'actif'),
+ ('40000000-0000-0000-0000-000000000001', '+22990000001', 'Admin TransportConnect', 'admin',        1, NULL, NULL, NULL, 'actif'),
  ('40000000-0000-0000-0000-000000000002', '+22997123456', 'Ali Dossou',         'marchand',     1, NULL, 'commerce_general', NULL, 'actif'),
  ('40000000-0000-0000-0000-000000000003', '+22996112233', 'Fatou Bello',        'marchand',     1, NULL, 'textile', NULL, 'actif'),
  ('40000000-0000-0000-0000-000000000004', '+22994556677', 'Koffi Agbo',         'marchand',     3, NULL, 'alimentaire', NULL, 'actif'),

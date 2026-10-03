@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="1 19 63 26">
+  <!-- TransportConnect – symbole « Maillons » (fond clair). Entrelacement : le maillon bleu passe dessus
+       en haut, l'orange dessus en bas (dernier tracé). -->
+  <path d="M32 23 H42 A9 9 0 0 1 42 41 H32 A9 9 0 0 1 32 23 Z" fill="none" stroke="#F39C12" stroke-width="6"/>
+  <path d="M14 23 H24 A9 9 0 0 1 24 41 H14 A9 9 0 0 1 14 23 Z" fill="none" stroke="#163A6B" stroke-width="6"/>
+  <path d="M33.56 40.86 A9 9 0 0 1 24.21 36.5" fill="none" stroke="#F39C12" stroke-width="6"/>
+  <path d="M57 25 L62 32 L57 39" fill="none" stroke="#F39C12" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../api/api_client.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/logo.dart';
 
 /// Connexion administrateur : numéro de téléphone puis code OTP à 6 chiffres.
 class LoginPage extends StatefulWidget {
@@ -74,18 +75,12 @@ class _LoginPageState extends State<LoginPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(color: TC.secondary, borderRadius: BorderRadius.circular(12)),
-                          child: const Icon(Icons.local_shipping, color: TC.white),
-                        ),
-                        const SizedBox(width: 12),
-                        Text('TransConnect Admin', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w600)),
-                      ],
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: TcLogo(markSize: 27, fontSize: 27),
                     ),
+                    const SizedBox(height: 6),
+                    Text('Back-office administrateur', style: TC.caption),
                     const SizedBox(height: 32),
                     Text(_otpId == null ? 'Connexion' : 'Code de vérification', style: TC.h2),
                     const SizedBox(height: 4),
