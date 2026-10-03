@@ -53,8 +53,11 @@ final class VerificationOtpProcessor implements ProcessorInterface
                 ? "Ce numéro n'a pas de compte administrateur." : null,
             'representant' => !\in_array($utilisateur?->role, [RoleUtilisateur::Representant, RoleUtilisateur::Chauffeur], true)
                 ? "Ce numéro n'a pas de compte représentant. Les comptes sont créés par le transporteur." : null,
-            'marchand' => null !== $utilisateur && RoleUtilisateur::Marchand !== $utilisateur->role
-                ? \sprintf('Ce numéro est enregistré comme %s : choisissez le bon espace.', $utilisateur->role->value) : null,
+            'marchand' => match (null === $utilisateur ? null : $utilisateur->role) {
+                null, RoleUtilisateur::Marchand => null,
+                RoleUtilisateur::Admin => "Ce numéro est un compte administrateur : il donne accès au back-office (site web), pas à l'espace marchand. Utilisez un autre numéro pour un compte marchand.",
+                default => "Ce numéro est un compte représentant ou chauffeur : choisissez « Représentant » sur l'écran précédent.",
+            },
             default => null,
         };
         if (null !== $refus) {
