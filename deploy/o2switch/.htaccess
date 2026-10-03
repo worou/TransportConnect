@@ -1,6 +1,9 @@
 # TransConnect sur o2switch : back-office Flutter à la racine, API Symfony sous /api
 DirectoryIndex index.html
 
+# Moteur de rendu Flutter (CanvasKit) : type requis pour le chargement en streaming
+AddType application/wasm .wasm
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
