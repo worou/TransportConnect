@@ -810,7 +810,9 @@ class _SuiviCarteScreenState extends State<SuiviCarteScreen> {
                   v == null || v['latitude'] == null ? null : LatLng(double.parse('${v['latitude']}'), double.parse('${v['longitude']}'));
               final depart = point(session.ville(d.demande['ville_depart'] as String?));
               final arrivee = point(session.ville(d.demande['ville_arrivee'] as String?));
-              final trace = [for (final p in positions.reversed) LatLng(double.parse('${p['latitude']}'), double.parse('${p['longitude']}'))];
+              // Ordre chronologique par numéro de position (fiable même si deux relevés ont la même heure)
+              final ordonnees = [...positions]..sort((a, b) => (a['id'] as num).compareTo(b['id'] as num));
+              final trace = [for (final p in ordonnees) LatLng(double.parse('${p['latitude']}'), double.parse('${p['longitude']}'))];
               final camion = trace.isEmpty ? null : trace.last;
               final pts = [?depart, ?arrivee, ...trace];
               return Column(children: [
@@ -860,7 +862,7 @@ class _SuiviCarteScreenState extends State<SuiviCarteScreen> {
                           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                             Text(lv?['date_arrivee_estimee'] != null ? 'Arrivée estimée : ${date(lv!['date_arrivee_estimee'])}' : 'Arrivée à confirmer', style: TC.strong),
                             Text(
-                              camion != null && positions.isNotEmpty ? 'Dernière position : ${dateHeure(positions.first['horodatage'])}' : '${d.demande['nom_ville_depart']} → ${d.demande['nom_ville_arrivee']}',
+                              camion != null ? 'Dernière position : ${dateHeure(ordonnees.last['horodatage'])}' : '${d.demande['nom_ville_depart']} → ${d.demande['nom_ville_arrivee']}',
                               style: TC.small,
                             ),
                           ]),

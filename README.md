@@ -9,6 +9,8 @@ un représentant du transporteur évalue la marchandise sur place et propose un 
 | [`01_schema.sql`](01_schema.sql), [`02_seed.sql`](02_seed.sql) | Base PostgreSQL (schéma `transconnect` : tables, types, triggers, vues) et données de démo |
 | [`api/`](api/README.md) | API REST Symfony 7.4 + API Platform 5, documentation Swagger, authentification OTP + JWT |
 | [`backoffice/`](backoffice/README.md) | Back-office d'administration en Flutter Web |
+| [`mobile/`](mobile/README.md) | Application mobile Flutter (Android) : espaces marchand et représentant |
+| [`deploy/o2switch/`](deploy/o2switch/README.md) | Déploiement en production sur https://transco.teranga.re |
 | `docker-compose.yml` | PostgreSQL 16 avec chargement automatique des scripts |
 
 ## Base de données

@@ -127,8 +127,9 @@ INSERT INTO evaluation (id_evaluation, id_demande, id_representant, date_checkin
 VALUES ('60000000-0000-0000-0000-000000000124', '50000000-0000-0000-0000-000000000124', '40000000-0000-0000-0000-000000000005',
         now(), 6.371000, 2.432000, 18, 620, 3.0, 'bon');
 INSERT INTO devis (id_devis, id_evaluation, id_grille, prix_suggere, prix_propose, justification, delai_jours, type_vehicule)
-VALUES ('70000000-0000-0000-0000-000000000124', '60000000-0000-0000-0000-000000000124', '30000000-0000-0000-0000-000000000001',
-        21000, 23000, 'Accès difficile au point d''enlèvement (ruelle étroite).', 1, 'Fourgon 1,5 T');
+SELECT '70000000-0000-0000-0000-000000000124', '60000000-0000-0000-0000-000000000124', '30000000-0000-0000-0000-000000000001',
+       p, p + 2000, 'Accès difficile au point d''enlèvement (ruelle étroite).', 1, 'Fourgon 1,5 T'
+  FROM calculer_prix_suggere('30000000-0000-0000-0000-000000000001', 145, 620, 'alimentaire', 'normale') AS p;   -- 22 900 + 2 000
 UPDATE demande SET statut = 'PRIX_PROPOSE' WHERE id_demande = '50000000-0000-0000-0000-000000000124';
 INSERT INTO message_negociation (id_devis, emetteur, prix_contre_offre, message) VALUES
  ('70000000-0000-0000-0000-000000000124', 'marchand',     20000, 'Je peux livrer les cartons en bord de route.'),

@@ -72,6 +72,8 @@ class _NavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
+        // Hauteur fixe : sans elle, le bouton central s'étire et la barre occupe tout l'écran
+        height: 64 + MediaQuery.paddingOf(context).bottom,
         padding: EdgeInsets.only(left: 8, right: 8, bottom: MediaQuery.paddingOf(context).bottom),
         decoration: const BoxDecoration(color: TC.white, border: Border(top: BorderSide(color: TC.border))),
         child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
