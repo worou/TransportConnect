@@ -200,6 +200,8 @@ CREATE TABLE demande (
     contact_telephone VARCHAR(20),
     instructions      VARCHAR(500),
     distance_km       NUMERIC(7,1) CHECK (distance_km > 0),
+    lat_depart        NUMERIC(9,6),                                            -- position GPS du marchand à la création
+    lng_depart        NUMERIC(9,6),
     statut            statut_demande NOT NULL DEFAULT 'EN_ATTENTE',
     created_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -300,6 +302,7 @@ CREATE TABLE livraison (                                                       -
     id_chauffeur        UUID REFERENCES utilisateur(id_utilisateur),           -- Exécuter (MVP+1)
     id_vehicule         UUID REFERENCES vehicule(id_vehicule),                 -- Utiliser
     code_otp_hash       TEXT NOT NULL,                                         -- code de réception, stocké haché
+    code_clair          VARCHAR(4),                                            -- affiché au seul marchand (app mobile)
     statut              statut_livraison NOT NULL DEFAULT 'pret_enlevement',
     date_enlevement_reel TIMESTAMPTZ,
     date_arrivee_estimee DATE,

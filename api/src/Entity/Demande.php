@@ -125,7 +125,22 @@ class Demande
     #[Assert\Positive]
     public ?string $distanceKm = null;
 
+    #[ORM\Column(type: 'decimal', precision: 9, scale: 6, nullable: true)]
+    public ?string $latDepart = null;
+
+    #[ORM\Column(type: 'decimal', precision: 9, scale: 6, nullable: true)]
+    public ?string $lngDepart = null;
+
+    /**
+     * Le marchand ne peut qu'annuler sa demande avant paiement ; les autres transitions sont faites par la plateforme
+     * (évaluation, devis, paiement, livraison). Une valeur refusée est ignorée.
+     */
     #[ORM\Column(type: 'string', enumType: StatutDemande::class)]
+    #[ApiProperty(securityPostDenormalize: "is_granted('ROLE_ADMIN')
+        or (previous_object === null and object.statut.value == 'EN_ATTENTE')
+        or (previous_object !== null and object.statut == previous_object.statut)
+        or (previous_object !== null and object.statut.value == 'ANNULE'
+            and previous_object.statut.value in ['EN_ATTENTE', 'REPRESENTANT_ASSIGNE', 'EN_EVALUATION', 'PRIX_PROPOSE', 'EN_NEGOCIATION'])")]
     public StatutDemande $statut = StatutDemande::EnAttente;
 
     #[ORM\Column(type: 'datetimetz_immutable', insertable: false, updatable: false, generated: 'INSERT')]
@@ -135,4 +150,25 @@ class Demande
     #[ORM\Column(type: 'datetimetz_immutable', insertable: false, updatable: false, generated: 'ALWAYS')]
     #[ApiProperty(writable: false)]
     public ?\DateTimeImmutable $updatedAt = null;
+
+    /** Affichage (apps) : villes et marchand sans requêtes supplémentaires */
+    public function getNomVilleDepart(): string
+    {
+        return $this->villeDepart->nomVille;
+    }
+
+    public function getNomVilleArrivee(): string
+    {
+        return $this->villeArrivee->nomVille;
+    }
+
+    public function getNomMarchand(): ?string
+    {
+        return $this->marchand->nomComplet;
+    }
+
+    public function getTelephoneMarchand(): string
+    {
+        return $this->marchand->telephone;
+    }
 }

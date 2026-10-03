@@ -40,7 +40,11 @@ final class VerificationOtp
     #[Assert\Length(max: 120)]
     public ?string $nomComplet = null;
 
-    /** « admin » (back-office) : aucun compte n'est créé et seuls les administrateurs sont acceptés */
-    #[Assert\Choice(['admin'])]
+    /**
+     * Espace demandé : « admin » (back-office) ou « representant » (app mobile, représentants et chauffeurs) :
+     * le compte doit exister avec ce rôle, aucun compte n'est créé. « marchand » : compte marchand créé si besoin,
+     * refusé si le numéro appartient à un autre rôle.
+     */
+    #[Assert\Choice(['admin', 'representant', 'marchand'])]
     public ?string $espace = null;
 }

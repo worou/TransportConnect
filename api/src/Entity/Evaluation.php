@@ -87,7 +87,54 @@ class Evaluation
     #[ORM\Column(type: 'text', nullable: true)]
     public ?string $contraintes = null;
 
+    /** Devis issu de l'évaluation (côté inverse, non exposé : voir les getters plus bas) */
+    #[ORM\OneToOne(mappedBy: 'evaluation')]
+    #[ApiProperty(readable: false, writable: false)]
+    public ?Devis $devis = null;
+
     /** Renseigner pour soumettre l'évaluation (refusé s'il y a moins de 2 photos) */
     #[ORM\Column(type: 'datetimetz_immutable', nullable: true)]
     public ?\DateTimeImmutable $dateSoumission = null;
+
+    /** Affichage (app marchand) : le marchand ne peut pas lire le profil du représentant */
+    public function getNomRepresentant(): ?string
+    {
+        return $this->representant->nomComplet;
+    }
+
+    public function getTelephoneRepresentant(): string
+    {
+        return $this->representant->telephone;
+    }
+
+    public function getNomTransporteur(): ?string
+    {
+        return $this->representant->transporteur?->raisonSociale;
+    }
+
+    /** Affichage (app représentant) : demande et devis sans requêtes supplémentaires */
+    public function getNumeroDemande(): ?string
+    {
+        return $this->demande->numero;
+    }
+
+    public function getTrajet(): string
+    {
+        return $this->demande->villeDepart->nomVille.' → '.$this->demande->villeArrivee->nomVille;
+    }
+
+    public function getStatutDemande(): string
+    {
+        return $this->demande->statut->value;
+    }
+
+    public function getPrixDevis(): ?int
+    {
+        return $this->devis?->prixPropose;
+    }
+
+    public function getStatutDevis(): ?string
+    {
+        return $this->devis?->statut->value;
+    }
 }

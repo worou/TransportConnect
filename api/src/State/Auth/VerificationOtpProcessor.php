@@ -48,9 +48,18 @@ final class VerificationOtpProcessor implements ProcessorInterface
         $otp->utiliseLe = new \DateTimeImmutable();
 
         $utilisateur = $this->em->getRepository(Utilisateur::class)->findOneBy(['telephone' => $otp->telephone]);
-        if ('admin' === $data->espace && RoleUtilisateur::Admin !== $utilisateur?->role) {
+        $refus = match ($data->espace) {
+            'admin' => RoleUtilisateur::Admin !== $utilisateur?->role
+                ? "Ce numéro n'a pas de compte administrateur." : null,
+            'representant' => !\in_array($utilisateur?->role, [RoleUtilisateur::Representant, RoleUtilisateur::Chauffeur], true)
+                ? "Ce numéro n'a pas de compte représentant. Les comptes sont créés par le transporteur." : null,
+            'marchand' => null !== $utilisateur && RoleUtilisateur::Marchand !== $utilisateur->role
+                ? \sprintf('Ce numéro est enregistré comme %s : choisissez le bon espace.', $utilisateur->role->value) : null,
+            default => null,
+        };
+        if (null !== $refus) {
             $this->em->flush();
-            throw new AccessDeniedHttpException("Ce numéro n'a pas de compte administrateur.");
+            throw new AccessDeniedHttpException($refus);
         }
         $nouveauCompte = null === $utilisateur;
         if ($nouveauCompte) {

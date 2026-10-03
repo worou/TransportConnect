@@ -28,10 +28,9 @@ final class LivraisonProcessor implements ProcessorInterface
         $data->codeReception = null;
 
         if ($operation instanceof Post) {
-            if (null === $code) {
-                throw new UnprocessableEntityHttpException('code_reception : code à 4 chiffres obligatoire à la création de la livraison.');
-            }
+            $code ??= str_pad((string) random_int(0, 9999), 4, '0', \STR_PAD_LEFT);
             $data->codeOtpHash = hash('sha256', $code);
+            $data->codeClair = $code;
         } elseif (StatutLivraison::Livre === $data->statut && StatutLivraison::Livre !== $context['previous_data']?->statut) {
             if (null === $code || !hash_equals($data->codeOtpHash, hash('sha256', $code))) {
                 throw new UnprocessableEntityHttpException('Code de réception invalide.');

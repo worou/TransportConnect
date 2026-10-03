@@ -89,10 +89,10 @@ INSERT INTO paiement (id_paiement, id_devis, montant, moyen, operateur, numero_p
   'PAY-8F3K21', 'reussi', 's3://recus/TC-2026-00123.pdf');
 
 -- Livraison (code de réception 4829, stocké haché)
-INSERT INTO livraison (id_livraison, id_demande, id_chauffeur, id_vehicule, code_otp_hash, date_arrivee_estimee)
+INSERT INTO livraison (id_livraison, id_demande, id_chauffeur, id_vehicule, code_otp_hash, code_clair, date_arrivee_estimee)
 VALUES ('90000000-0000-0000-0000-000000000123', '50000000-0000-0000-0000-000000000123',
         '40000000-0000-0000-0000-000000000006', '20000000-0000-0000-0000-000000000001',
-        '1ec08285a725fe5e0141cc5cc8d493b342a3d12c75ae73b3acd393bc3b7d5d3a', '2026-10-07');   -- SHA-256 de « 4829 »
+        '1ec08285a725fe5e0141cc5cc8d493b342a3d12c75ae73b3acd393bc3b7d5d3a', '4829', '2026-10-07');   -- SHA-256 de « 4829 »
 
 UPDATE livraison SET statut = 'enleve', date_enlevement_reel = now() WHERE id_livraison = '90000000-0000-0000-0000-000000000123';
 INSERT INTO position_gps (id_livraison, latitude, longitude, vitesse_kmh) VALUES

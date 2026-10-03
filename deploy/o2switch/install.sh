@@ -51,6 +51,8 @@ JWT_PASSPHRASE=$(openssl rand -hex 32)
 CORS_ALLOW_ORIGIN='^https://transco\.teranga\.re$'
 DEFAULT_URI=https://transco.teranga.re
 OTP_DEBUG=${OTP_DEBUG:-0}
+UPLOAD_DIR=$HOME/transco.teranga.re/uploads
+UPLOAD_BASE_URL=https://transco.teranga.re/uploads
 ENV
   chmod 600 ~/transco_app/.env.local
 fi

@@ -17,13 +17,19 @@ $PHP bin/console assets:install public --no-interaction
 
 # Racine web : back-office + contrôleur frontal + ressources de Swagger UI
 if [ -f ~/backoffice-web.tar.gz ]; then
-  find "$WEB" -mindepth 1 -maxdepth 1 ! -name cgi-bin ! -name .well-known -exec rm -rf {} +
+  # uploads/ (photos envoyées par les apps) et .well-known/ (Let's Encrypt) ne sont jamais effacés
+  find "$WEB" -mindepth 1 -maxdepth 1 ! -name cgi-bin ! -name .well-known ! -name uploads -exec rm -rf {} +
   tar -xzf ~/backoffice-web.tar.gz -C "$WEB"
 fi
 cp deploy/o2switch/index.php deploy/o2switch/.htaccess "$WEB"/
 rm -rf "$WEB/bundles" && cp -r public/bundles "$WEB/bundles"
 
+# Photos : dossier servi par le serveur web, sans exécution de scripts
+mkdir -p "$WEB/uploads"
+cp deploy/o2switch/uploads.htaccess "$WEB/uploads/.htaccess"
+
 # Lisible par le serveur web (sinon 403 « unable to read htaccess »)
-find "$WEB" -path "$WEB/cgi-bin" -prune -o -type d -exec chmod 755 {} + -o -type f -exec chmod 644 {} +
+find "$WEB" -path "$WEB/cgi-bin" -prune -o -path "$WEB/uploads" -prune -o -type d -exec chmod 755 {} + -o -type f -exec chmod 644 {} +
+chmod 755 "$WEB/uploads" && chmod 644 "$WEB/uploads/.htaccess"
 
 echo "Déployé : https://transco.teranga.re (Swagger : https://transco.teranga.re/api)"

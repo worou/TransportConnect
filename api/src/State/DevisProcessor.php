@@ -7,6 +7,7 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\Devis;
 use App\Enum\StatutDemande;
+use App\Enum\StatutDevis;
 use Doctrine\DBAL\Connection;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
@@ -47,6 +48,12 @@ final class DevisProcessor implements ProcessorInterface
             if (\in_array($demande->statut, self::STATUTS_AVANT_DEVIS, true)) {
                 $demande->statut = StatutDemande::PrixPropose;
             }
+        }
+
+        if (!$operation instanceof Post && StatutDevis::Refuse === $data->statut
+            && StatutDevis::Refuse !== ($context['previous_data'] ?? null)?->statut) {
+            // Refus du marchand : la demande est remise à disposition d'un autre transporteur
+            $data->evaluation->demande->statut = StatutDemande::EnAttente;
         }
 
         return $this->persistProcessor->process($data, $operation, $uriVariables, $context);

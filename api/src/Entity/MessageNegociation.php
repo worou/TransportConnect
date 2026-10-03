@@ -21,7 +21,11 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiResource(
     operations: [
         new GetCollection(parameters: ['devis' => new QueryParameter(filter: new IriFilter(), property: 'devis')]),
-        new Get(), new Post(),
+        new Get(),
+        new Post(securityPostDenormalize: "is_granted('ROLE_ADMIN')
+            or (object.emetteur.value == 'marchand' and object.devis.evaluation.demande.marchand == user)
+            or (object.emetteur.value == 'representant' and object.devis.evaluation.representant == user)",
+            securityPostDenormalizeMessage: 'Seuls le marchand et le représentant de ce devis peuvent négocier.'),
     ],
     order: ['dateEnvoi' => 'ASC'],
 )]

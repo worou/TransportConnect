@@ -46,7 +46,7 @@ class Devis
     #[ApiProperty(writable: false)]
     public ?Uuid $id = null;
 
-    #[ORM\OneToOne]
+    #[ORM\OneToOne(inversedBy: 'devis')]
     #[ORM\JoinColumn(name: 'id_evaluation', referencedColumnName: 'id_evaluation', nullable: false, onDelete: 'CASCADE')]
     #[Assert\NotNull]
     public Evaluation $evaluation;
@@ -87,4 +87,10 @@ class Devis
 
     #[ORM\Column(type: 'string', enumType: StatutDevis::class)]
     public StatutDevis $statut = StatutDevis::Propose;
+
+    /** Affichage (app marchand) */
+    public function getNomTransporteur(): string
+    {
+        return $this->grille->transporteur->raisonSociale;
+    }
 }

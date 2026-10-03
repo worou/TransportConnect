@@ -65,12 +65,17 @@ class Livraison
     public ?string $codeOtpHash = null;
 
     /**
-     * Code de réception à 4 chiffres (écriture seule) : à fournir à la création,
-     * puis à nouveau pour passer la livraison au statut « livre ».
+     * Code de réception à 4 chiffres (écriture seule) : généré par la plateforme à la création s'il est absent,
+     * puis exigé pour passer la livraison au statut « livre ».
      */
     #[ApiProperty(readable: false, example: '4829')]
     #[Assert\Regex('/^\d{4}$/', message: 'Le code de réception comporte 4 chiffres.')]
     public ?string $codeReception = null;
+
+    /** Code de réception en clair : visible du seul marchand de la demande (et des admins) */
+    #[ORM\Column(length: 4, nullable: true)]
+    #[ApiProperty(writable: false, security: "is_granted('ROLE_ADMIN') or object.demande.marchand == user")]
+    public ?string $codeClair = null;
 
     #[ORM\Column(type: 'string', enumType: StatutLivraison::class)]
     public StatutLivraison $statut = StatutLivraison::PretEnlevement;
@@ -95,4 +100,20 @@ class Livraison
     #[ORM\Column(type: 'datetimetz_immutable', insertable: false, updatable: false, generated: 'ALWAYS')]
     #[ApiProperty(writable: false)]
     public ?\DateTimeImmutable $updatedAt = null;
+
+    /** Affichage (app marchand) */
+    public function getNomChauffeur(): ?string
+    {
+        return $this->chauffeur?->nomComplet;
+    }
+
+    public function getTelephoneChauffeur(): ?string
+    {
+        return $this->chauffeur?->telephone;
+    }
+
+    public function getDescriptionVehicule(): ?string
+    {
+        return null === $this->vehicule ? null : $this->vehicule->typeVehicule.' · '.$this->vehicule->immatriculation;
+    }
 }
