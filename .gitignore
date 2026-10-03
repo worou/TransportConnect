@@ -1,0 +1,7 @@
+# Outils portables (PHP, PostgreSQL, Flutter, Composer) : installés localement, non versionnés
+/.tools/
+
+# Divers
+*.log
+.DS_Store
+Thumbs.db

@@ -1,0 +1,32 @@
+security:
+    # Authentification sans mot de passe : OTP par SMS (/api/auth/*), puis JWT (Bearer) sur toutes les requêtes.
+    providers:
+        utilisateurs:
+            entity:
+                class: App\Entity\Utilisateur
+                property: telephone
+
+    firewalls:
+        dev:
+            # Ensure dev tools and static assets are always allowed
+            pattern: ^/(_profiler|_wdt|assets|build|bundles)/
+            security: false
+        main:
+            stateless: true
+            provider: utilisateurs
+            user_checker: App\Security\UtilisateurChecker
+            jwt: ~
+
+    role_hierarchy:
+        ROLE_MARCHAND: ROLE_USER
+        ROLE_REPRESENTANT: ROLE_USER
+        ROLE_CHAUFFEUR: ROLE_USER
+        ROLE_ADMIN: [ROLE_USER, ROLE_MARCHAND, ROLE_REPRESENTANT, ROLE_CHAUFFEUR]
+
+    # Note: Only the *first* matching rule is applied
+    access_control:
+        - { path: ^/api/auth/, roles: PUBLIC_ACCESS }
+        - { path: ^/api/docs, roles: PUBLIC_ACCESS }
+        - { path: ^/api/contexts/, roles: PUBLIC_ACCESS }
+        - { path: ^/api/?$, roles: PUBLIC_ACCESS }         # Swagger UI / point d'entrée
+        - { path: ^/api/, roles: IS_AUTHENTICATED_FULLY }

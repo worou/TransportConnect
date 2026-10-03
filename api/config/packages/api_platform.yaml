@@ -1,0 +1,24 @@
+api_platform:
+    title: TransConnect API
+    description: 'API de mise en relation marchands ↔ transporteurs (schéma PostgreSQL `transconnect`).'
+    version: 1.0.0
+    formats:
+        jsonld: ['application/ld+json']
+        json: ['application/json']
+    docs_formats:
+        jsonopenapi: ['application/vnd.openapi+json']
+        jsonld: ['application/ld+json']
+        html: ['text/html']
+    patch_formats:
+        json: ['application/merge-patch+json']
+    # JSON en snake_case (created_at, prix_propose…), comme dans la spécification API
+    name_converter: 'serializer.name_converter.camel_case_to_snake_case'
+    # Bouton « Authorize » dans Swagger UI : coller le access_token reçu de /api/auth/verify-otp
+    swagger:
+        http_auth:
+            JWT: { scheme: bearer, bearerFormat: JWT }
+    defaults:
+        stateless: true
+        pagination_items_per_page: 20
+        cache_headers:
+            vary: ['Content-Type', 'Authorization', 'Origin']

@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16
+    container_name: transconnect-db
+    environment:
+      POSTGRES_DB: transconnect
+      POSTGRES_USER: transconnect
+      POSTGRES_PASSWORD: change-moi
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./01_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./02_seed.sql:/docker-entrypoint-initdb.d/02_seed.sql:ro
+      - pgdata:/var/lib/postgresql/data
+volumes:
+  pgdata:
