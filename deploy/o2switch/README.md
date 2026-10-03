@@ -15,7 +15,14 @@ transmet l'en-tête `Authorization` et bloque les fichiers `.env`.
 ## Prérequis
 
 - **Accès SSH** : l'IP du poste doit être autorisée dans cPanel › *Autorisation SSH* (port 22).
-- **Certificat HTTPS** : cPanel › *Let's Encrypt* pour `transco.teranga.re`.
+- **Certificat HTTPS** : Let's Encrypt via `acme.sh` installé sur le compte (`~/.acme.sh`), validation par
+  `~/transco.teranga.re/.well-known/` (exclu de la redirection HTTPS). Le certificat est installé dans cPanel par
+  `install-cert.sh` ; une tâche cron d'`acme.sh` (4 fois par jour) le renouvelle et le réinstalle automatiquement.
+  Première émission :
+  ```bash
+  ~/.acme.sh/acme.sh --issue -d transco.teranga.re -d www.transco.teranga.re -w ~/transco.teranga.re
+  ~/.acme.sh/acme.sh --install-cert -d transco.teranga.re --reloadcmd "bash ~/transco_app/deploy/o2switch/install-cert.sh"
+  ```
 
 ## Mettre à jour
 

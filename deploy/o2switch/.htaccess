@@ -7,8 +7,9 @@ AddType application/wasm .wasm
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # HTTPS obligatoire
+    # HTTPS obligatoire (sauf validation Let's Encrypt)
     RewriteCond %{HTTPS} !=on
+    RewriteCond %{REQUEST_URI} !^/\.well-known/
     RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 
     # Transmet l'en-tête Authorization (JWT) à PHP
